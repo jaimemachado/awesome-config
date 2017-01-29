@@ -14,6 +14,7 @@ local vicious = require("vicious") -- ./vicious
 local helpers = require("helpers") -- helpers.lua
 local revelation=require("revelation") -- revelation
 local titlebar = require("titlebar")
+require("spotify")
 -- local lain = require("lain")
 -- }}}
 
@@ -482,6 +483,8 @@ for s = 1, screen.count() do
 
   local right_layout = wibox.layout.fixed.horizontal()
 
+  right_layout:add(spotify_widget)
+
   if cpugraph_enable and cpugraph then
     if separator then right_layout:add(separator) end
     right_layout:add(cpuicon)
@@ -533,6 +536,7 @@ for s = 1, screen.count() do
     right_layout:add(baticon)
     right_layout:add(batwidget)
   end
+  
 
   if separator then right_layout:add(separator) end
   right_layout:add(dateicon)
@@ -617,6 +621,12 @@ globalkeys = awful.util.table.join(
                             awful.tag.selected().name = s
                         end)
                 end),
+
+    --spotify
+    awful.key({modkey,            }, "F12",     function () awful.util.spawn("sp stop", false) end),
+    awful.key({modkey,            }, "F11",     function () awful.util.spawn("sp play", false) end),
+    awful.key({modkey,            }, "F10",     function () awful.util.spawn("sp next", false) end),
+    awful.key({modkey,            }, "F9",     function () awful.util.spawn("sp prev", false) end),
 
     --lock Screen
     awful.key({ modkey }, "l", function () awful.util.spawn("xscreensaver-command -lock") end),
