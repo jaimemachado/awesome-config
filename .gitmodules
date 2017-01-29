@@ -4,9 +4,3 @@
 [submodule "revelation"]
 	path = revelation
 	url = git@github.com:guotsuan/awesome-revelation.git
-[submodule "lain"]
-	path = lain
-	url = git@github.com:jaimemachado/lain.git
-[submodule "tyrannical"]
-	path = tyrannical
-	url = https://github.com/Elv13/tyrannical.git
