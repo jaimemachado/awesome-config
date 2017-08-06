@@ -274,6 +274,23 @@ if membar_enable then
   vicious.register(membar, vicious.widgets.mem, "$1", 13)
 end
 
+
+
+-- {{{ Disk I/O
+local ioicon = wibox.widget.imagebox()
+ioicon:set_image(beautiful.widget_fs)
+ioicon.visible = true
+local iowidgetSDA = wibox.widget.textbox()
+vicious.register(iowidgetSDA, vicious.widgets.dio, "HDSDA ${sda read_mb}/${sda write_mb}MB", 2)
+local iowidgetSDB = wibox.widget.textbox()
+vicious.register(iowidgetSDB, vicious.widgets.dio, "HDSDB ${sdb read_mb}/${sdb write_mb}MB", 2)
+-- Register buttons
+iowidgetSDA:buttons( awful.button({ }, 1, function () awful.util.spawn(terminal .. " -e sudo iotop -oP") end) )
+iowidgetSDB:buttons( awful.button({ }, 1, function () awful.util.spawn(terminal .. " -e sudo iotop -oP") end) )
+-- }}}
+
+
+
 -- mem text output
 memtext = wibox.widget.textbox()
 vicious.register(memtext, vicious.widgets.mem, memtext_format, 13)
@@ -426,6 +443,10 @@ mytasklist.buttons = awful.util.table.join(
                                               if client.focus then client.focus:raise() end
                                           end))
 
+systrayScreen = 1
+if screen.count() > 2 then
+    systrayScreen = 2
+end
 
 for s = 1, screen.count() do
     -- Create a promptbox
@@ -459,12 +480,12 @@ for s = 1, screen.count() do
             mpdwidget and spacer, mpdwidget or nil,
         },
         --s == screen.count() and systray or nil, -- show tray on last screen
-        s == 1 and systray or nil, -- only show tray on first screen
-        s == 1 and separator or nil, -- only show on first screen
+        s == systrayScreen and systray or nil, -- only show tray on first screen
+        s == systrayScreen and separator or nil, -- only show on first screen
         datewidget, dateicon,
         baticon.image and separator, batwidget, baticon or nil,
         separator, volwidget,  volbar.widget, volicon,
-        separator, fs.r.widget, fs.s.widget, fsicon,
+        separator, fs.r.widget, fs.s.widget, fsicon, separator, ioicon,
         separator, memtext, membar_enable and membar.widget or nil, memicon,
         separator, tzfound and tzswidget or nil,
         cpugraph_enable and cpugraph.widget or nil, cpuwidget, cpuicon,
@@ -514,6 +535,14 @@ for s = 1, screen.count() do
     right_layout:add(fs.s)
   end
 
+  if ioicon then
+    if separator then right_layout:add(separator) end
+    right_layout:add(ioicon)
+    right_layout:add(iowidgetSDA)
+    right_layout:add(separator)
+    right_layout:add(iowidgetSDB)
+  end
+
 
   if dnicon and upicon and netwidget then
     if separator then right_layout:add(separator) end
@@ -542,9 +571,9 @@ for s = 1, screen.count() do
   right_layout:add(dateicon)
   right_layout:add(datewidget)
 
-  if s == 1 then
+  if s == systrayScreen then
     if separator then right_layout:add(separator) end
-    right_layout:add(s == 1 and systray or nil)
+    right_layout:add(s == systrayScreen and systray or nil)
   end
 
   right_layout:add(layoutbox[s])
@@ -630,6 +659,8 @@ globalkeys = awful.util.table.join(
     awful.key({modkey,            }, "F11",     function () awful.util.spawn("sp play", false) end),
     awful.key({modkey,            }, "F10",     function () awful.util.spawn("sp next", false) end),
     awful.key({modkey,            }, "F9",     function () awful.util.spawn("sp prev", false) end),
+    awful.key({modkey,            }, "F8",     function () awful.util.spawn("amixer -q sset Master 2+", false) end),
+    awful.key({modkey,            }, "F7",     function () awful.util.spawn("amixer -q sset Master 2-", false) end),
 
     --lock Screen
     awful.key({ modkey }, "l", function () awful.util.spawn("xscreensaver-command -lock") end),
@@ -679,6 +710,12 @@ clientkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
+    awful.key({ modkey,           }, "i",      
+      function (c) 
+          awful.client.movetoscreen(c, c.screen-1)
+      end),
+
+
     awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
     awful.key({ modkey,           }, "t",      function (c) c.ontop = not c.ontop            end),
     awful.key({ modkey,           }, "n",
@@ -765,6 +802,8 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "gimp" },
       properties = { floating = true } },
+    { rule = { class = "sky" }, properties = { floating = true } },
+    { rule = { class = "Sky" }, properties = { floating = true } },
     { rule = { class = "ROX-Filer" },   properties = { floating = true } },
     { rule = { class = "Chromium-browser" },   properties = { floating = false } },
     { rule = { class = "Google-chrome" },   properties = { floating = false } },
