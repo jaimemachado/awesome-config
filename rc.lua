@@ -69,6 +69,8 @@ wallpaper_dir = os.getenv("HOME") .. "/Pictures/Wallpaper" -- wallpaper dir
 --- arabic, chinese, {east|persian}_arabic, roman, thai, random
 taglist_numbers = "arabic" -- we support arabic (1,2,3...),
 
+opacity_enable = true -- Show CPU graph
+
 cpugraph_enable = true -- Show CPU graph
 cputext_format = " $1%" -- %1 average cpu, %[2..] every other thread individually
 
@@ -669,6 +671,7 @@ globalkeys = awful.util.table.join(
     awful.key({modkey,            }, "F1",     function () awful.screen.focus(1) end),
     awful.key({modkey,            }, "F2",     function () awful.screen.focus(2) end),
     awful.key({modkey,            }, "F3",     function () awful.screen.focus(3) end),
+    awful.key({modkey,  "Shift"   }, "o",      function () opacity_enable = not opacity_enable end),
 
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
@@ -856,7 +859,9 @@ client.connect_signal("focus", function(c)
 			       end)
 client.connect_signal("unfocus", function(c) 
 					c.border_color = beautiful.border_normal 
-   					c.opacity = 0.7
+					if opacity_enable then
+   						c.opacity = 0.7
+   					end
 				 end)
 
 -- }}}
