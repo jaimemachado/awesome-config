@@ -4,7 +4,7 @@ local awful = require("awful")
 spotify_widget = wibox.widget.textbox()
 
 function updateSpotifyWidget(widget)
-  local current = awful.util.pread('sp current-oneline')
+  local current = awful.util.pread('sp current')
   widget:set_text(current)
 end
 

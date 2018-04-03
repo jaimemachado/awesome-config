@@ -663,6 +663,14 @@ globalkeys = awful.util.table.join(
     awful.key({modkey,            }, "F9",     function () awful.util.spawn("sp prev", false) end),
     awful.key({modkey,            }, "F8",     function () awful.util.spawn("amixer -q sset Master 2+", false) end),
     awful.key({modkey,            }, "F7",     function () awful.util.spawn("amixer -q sset Master 2-", false) end),
+    awful.key({ }, "XF86AudioRaiseVolume",     function () awful.util.spawn("amixer set Master 2%+", false) end),
+    awful.key({ }, "XF86AudioLowerVolume",     function () awful.util.spawn("amixer set Master 2%-", false) end),
+    awful.key({ }, "XF86AudioMute",            function () awful.util.spawn("amixer -q -D pulse sset Master toggle", false) end),
+    awful.key({                   }, "XF86AudioPlay", function () awful.util.spawn("sp play", false) end),
+    awful.key({                   }, "XF86AudioStop", function () awful.util.spawn("sp stop", false) end),
+    awful.key({                   }, "XF86AudioNext", function () awful.util.spawn("sp next", false) end),
+    awful.key({                   }, "XF86AudioPrev", function () awful.util.spawn("sp prev", false) end),
+
 
     --lock Screen
     awful.key({ modkey }, "l", function () awful.util.spawn("xscreensaver-command -lock") end),
@@ -807,6 +815,8 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "sky" }, properties = { floating = true } },
     { rule = { class = "Sky" }, properties = { floating = true } },
+    { rule = { class = "galculator" }, properties = { floating = true } },
+    { rule = { class = "Galculator" }, properties = { floating = true } },
     { rule = { class = "ROX-Filer" },   properties = { floating = true } },
     { rule = { class = "Chromium-browser" },   properties = { floating = false } },
     { rule = { class = "Google-chrome" },   properties = { floating = false } },
