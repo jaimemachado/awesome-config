@@ -69,6 +69,8 @@ wallpaper_dir = os.getenv("HOME") .. "/Pictures/Wallpaper" -- wallpaper dir
 --- arabic, chinese, {east|persian}_arabic, roman, thai, random
 taglist_numbers = "arabic" -- we support arabic (1,2,3...),
 
+opacity_enable = true -- Show CPU graph
+
 cpugraph_enable = true -- Show CPU graph
 cputext_format = " $1%" -- %1 average cpu, %[2..] every other thread individually
 
@@ -274,6 +276,23 @@ if membar_enable then
   vicious.register(membar, vicious.widgets.mem, "$1", 13)
 end
 
+
+
+-- {{{ Disk I/O
+local ioicon = wibox.widget.imagebox()
+ioicon:set_image(beautiful.widget_fs)
+ioicon.visible = true
+local iowidgetSDA = wibox.widget.textbox()
+vicious.register(iowidgetSDA, vicious.widgets.dio, "HDSDA ${sda read_mb}/${sda write_mb}MB", 2)
+local iowidgetSDB = wibox.widget.textbox()
+vicious.register(iowidgetSDB, vicious.widgets.dio, "HDSDB ${sdb read_mb}/${sdb write_mb}MB", 2)
+-- Register buttons
+iowidgetSDA:buttons( awful.button({ }, 1, function () awful.util.spawn(terminal .. " -e sudo iotop -oP") end) )
+iowidgetSDB:buttons( awful.button({ }, 1, function () awful.util.spawn(terminal .. " -e sudo iotop -oP") end) )
+-- }}}
+
+
+
 -- mem text output
 memtext = wibox.widget.textbox()
 vicious.register(memtext, vicious.widgets.mem, memtext_format, 13)
@@ -426,6 +445,10 @@ mytasklist.buttons = awful.util.table.join(
                                               if client.focus then client.focus:raise() end
                                           end))
 
+systrayScreen = 1
+if screen.count() > 2 then
+    systrayScreen = 2
+end
 
 for s = 1, screen.count() do
     -- Create a promptbox
@@ -459,12 +482,12 @@ for s = 1, screen.count() do
             mpdwidget and spacer, mpdwidget or nil,
         },
         --s == screen.count() and systray or nil, -- show tray on last screen
-        s == 1 and systray or nil, -- only show tray on first screen
-        s == 1 and separator or nil, -- only show on first screen
+        s == systrayScreen and systray or nil, -- only show tray on first screen
+        s == systrayScreen and separator or nil, -- only show on first screen
         datewidget, dateicon,
         baticon.image and separator, batwidget, baticon or nil,
         separator, volwidget,  volbar.widget, volicon,
-        separator, fs.r.widget, fs.s.widget, fsicon,
+        separator, fs.r.widget, fs.s.widget, fsicon, separator, ioicon,
         separator, memtext, membar_enable and membar.widget or nil, memicon,
         separator, tzfound and tzswidget or nil,
         cpugraph_enable and cpugraph.widget or nil, cpuwidget, cpuicon,
@@ -514,6 +537,14 @@ for s = 1, screen.count() do
     right_layout:add(fs.s)
   end
 
+  if ioicon then
+    if separator then right_layout:add(separator) end
+    right_layout:add(ioicon)
+    right_layout:add(iowidgetSDA)
+    right_layout:add(separator)
+    right_layout:add(iowidgetSDB)
+  end
+
 
   if dnicon and upicon and netwidget then
     if separator then right_layout:add(separator) end
@@ -542,9 +573,9 @@ for s = 1, screen.count() do
   right_layout:add(dateicon)
   right_layout:add(datewidget)
 
-  if s == 1 then
+  if s == systrayScreen then
     if separator then right_layout:add(separator) end
-    right_layout:add(s == 1 and systray or nil)
+    right_layout:add(s == systrayScreen and systray or nil)
   end
 
   right_layout:add(layoutbox[s])
@@ -586,8 +617,11 @@ clientbuttons = awful.util.table.join(
 globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
-    awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
+    awful.key({ modkey,           }, "`", awful.tag.history.restore),
     awful.key({ modkey,           }, "e",      revelation),
+    awful.key({ modkey,           }, "d", function()
+            revelation({rule={class="URxvt"}})
+         end),
     awful.key({ modkey,           }, "j",
         function ()
             awful.client.focus.byidx( 1)
@@ -627,6 +661,16 @@ globalkeys = awful.util.table.join(
     awful.key({modkey,            }, "F11",     function () awful.util.spawn("sp play", false) end),
     awful.key({modkey,            }, "F10",     function () awful.util.spawn("sp next", false) end),
     awful.key({modkey,            }, "F9",     function () awful.util.spawn("sp prev", false) end),
+    awful.key({modkey,            }, "F8",     function () awful.util.spawn("amixer -q sset Master 2+", false) end),
+    awful.key({modkey,            }, "F7",     function () awful.util.spawn("amixer -q sset Master 2-", false) end),
+    awful.key({ }, "XF86AudioRaiseVolume",     function () awful.util.spawn("amixer set Master 2%+", false) end),
+    awful.key({ }, "XF86AudioLowerVolume",     function () awful.util.spawn("amixer set Master 2%-", false) end),
+    awful.key({ }, "XF86AudioMute",            function () awful.util.spawn("amixer -q -D pulse sset Master toggle", false) end),
+    awful.key({                   }, "XF86AudioPlay", function () awful.util.spawn("sp play", false) end),
+    awful.key({                   }, "XF86AudioStop", function () awful.util.spawn("sp stop", false) end),
+    awful.key({                   }, "XF86AudioNext", function () awful.util.spawn("sp next", false) end),
+    awful.key({                   }, "XF86AudioPrev", function () awful.util.spawn("sp prev", false) end),
+
 
     --lock Screen
     awful.key({ modkey }, "l", function () awful.util.spawn("xscreensaver-command -lock") end),
@@ -635,6 +679,7 @@ globalkeys = awful.util.table.join(
     awful.key({modkey,            }, "F1",     function () awful.screen.focus(1) end),
     awful.key({modkey,            }, "F2",     function () awful.screen.focus(2) end),
     awful.key({modkey,            }, "F3",     function () awful.screen.focus(3) end),
+    awful.key({modkey,  "Shift"   }, "o",      function () opacity_enable = not opacity_enable end),
 
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
@@ -676,6 +721,12 @@ clientkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
+    awful.key({ modkey,           }, "i",      
+      function (c) 
+          awful.client.movetoscreen(c, c.screen-1)
+      end),
+
+
     awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
     awful.key({ modkey,           }, "t",      function (c) c.ontop = not c.ontop            end),
     awful.key({ modkey,           }, "n",
@@ -762,10 +813,17 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "gimp" },
       properties = { floating = true } },
+    { rule = { class = "sky" }, properties = { floating = true } },
+    { rule = { class = "Sky" }, properties = { floating = true } },
+    { rule = { class = "galculator" }, properties = { floating = true } },
+    { rule = { class = "Galculator" }, properties = { floating = true } },
     { rule = { class = "ROX-Filer" },   properties = { floating = true } },
     { rule = { class = "Chromium-browser" },   properties = { floating = false } },
     { rule = { class = "Google-chrome" },   properties = { floating = false } },
     { rule = { class = "Firefox" },   properties = { floating = false } },
+--setup project
+    { rule = { class = "setupGUI" },   properties = { floating = true } },
+
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
@@ -805,8 +863,17 @@ client.connect_signal("manage", function (c, startup)
 
 end)
 
-client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
-client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+client.connect_signal("focus", function(c) 
+					c.border_color = beautiful.border_focus 
+					c.opacity = 1
+			       end)
+client.connect_signal("unfocus", function(c) 
+					c.border_color = beautiful.border_normal 
+					if opacity_enable then
+   						c.opacity = 0.7
+   					end
+				 end)
+
 -- }}}
 
 -- {{{ Arrange signal handler
