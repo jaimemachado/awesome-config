@@ -679,7 +679,7 @@ globalkeys = awful.util.table.join(
     awful.key({modkey,            }, "F1",     function () awful.screen.focus(1) end),
     awful.key({modkey,            }, "F2",     function () awful.screen.focus(2) end),
     awful.key({modkey,            }, "F3",     function () awful.screen.focus(3) end),
-    awful.key({modkey,  "Shift"   }, "o",      function () opacity_enable = not opacity_enable end),
+    awful.key({modkey,            }, "q",      function () opacity_enable = not opacity_enable end),
 
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
@@ -823,6 +823,13 @@ awful.rules.rules = {
     { rule = { class = "Firefox" },   properties = { floating = false } },
 --setup project
     { rule = { class = "setupGUI" },   properties = { floating = true } },
+    {
+       rule = { class = "lfpServer" },
+       properties = { floating = true },
+       callback = function( c )
+          c:geometry( { width = 1010 , height = 800 } )
+       end
+    },
 
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
