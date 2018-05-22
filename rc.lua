@@ -675,6 +675,10 @@ globalkeys = awful.util.table.join(
     --lock Screen
     awful.key({ modkey }, "l", function () awful.util.spawn("xscreensaver-command -lock") end),
 
+    --Sleep and lock
+    awful.key({ modkey, "Shift" }, "l", function () awful.util.spawn("lock_sleep") end),
+
+    
     -- Change Monitor Focus
     awful.key({modkey,            }, "F1",     function () awful.screen.focus(1) end),
     awful.key({modkey,            }, "F2",     function () awful.screen.focus(2) end),
