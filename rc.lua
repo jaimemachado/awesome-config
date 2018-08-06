@@ -52,6 +52,18 @@ end
 beautiful.init(awful.util.getdir("config") .. "/themes/zhongguo/zhongguo.lua")
 
 
+
+_awesome_quit = awesome.quit
+awesome.quit = function()
+    if os.getenv("DESKTOP_SESSION") == "awesome-gnome" then
+       os.execute("pkill -9 gnome-session") -- I use this on Ubuntu 16.04
+    else
+    _awesome_quit()
+    end
+end
+
+
+
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
 -- If you do not like this or do not have such a key,
@@ -656,6 +668,7 @@ globalkeys = awful.util.table.join(
                         end)
                 end),
 
+    awful.key({modkey,            }, "c",     function () awful.util.spawn("compton-inverter.py -t", false) end),
     --spotify
     awful.key({modkey,            }, "F12",     function () awful.util.spawn("sp stop", false) end),
     awful.key({modkey,            }, "F11",     function () awful.util.spawn("sp play", false) end),
@@ -674,6 +687,7 @@ globalkeys = awful.util.table.join(
 
     --lock Screen
     awful.key({ modkey }, "l", function () awful.util.spawn("xscreensaver-command -lock") end),
+    awful.key({ modkey, "Shift" }, "l", function () awful.util.spawn("lock_sleep") end),
 
     --Sleep and lock
     awful.key({ modkey, "Shift" }, "l", function () awful.util.spawn("lock_sleep") end),
@@ -743,7 +757,27 @@ clientkeys = awful.util.table.join(
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
             c.maximized_vertical   = not c.maximized_vertical
-        end)
+    end),
+    awful.key({ modkey,           }, "h",
+       function (c)
+          for _, w in ipairs(client.get()) do
+             if w.class == c.class then
+                w.minimized = true
+             end
+          end
+          c.minimized = true
+    end),
+    awful.key({ modkey, "Shift"  }, "h",
+       function (c)
+          for _, w in ipairs(client.get()) do
+             if w.class == c.class then
+                w.minimized = false
+             end
+          end
+          c.minimized = false
+    end)
+    
+    
 )
 
 -- Bind all key numbers to tags.
@@ -818,6 +852,8 @@ awful.rules.rules = {
     { rule = { class = "gimp" },
       properties = { floating = true } },
     { rule = { class = "sky" }, properties = { floating = true } },
+    { rule = { class = "omestools" }, properties = { floating = true } },
+    { rule = { class = "Omestools" }, properties = { floating = true } },
     { rule = { class = "Sky" }, properties = { floating = true } },
     { rule = { class = "galculator" }, properties = { floating = true } },
     { rule = { class = "Galculator" }, properties = { floating = true } },
@@ -827,11 +863,14 @@ awful.rules.rules = {
     { rule = { class = "Firefox" },   properties = { floating = false } },
 --setup project
     { rule = { class = "setupGUI" },   properties = { floating = true } },
+--Atlas
+    { rule = { class = "ae_describe_commit" },   properties = { floating = true } },
+    
     {
        rule = { class = "lfpServer" },
        properties = { floating = true },
        callback = function( c )
-          c:geometry( { width = 1010 , height = 800 } )
+          c:geometry( { width = 800 , height = 615 } )
        end
     },
 
@@ -881,7 +920,9 @@ client.connect_signal("focus", function(c)
 client.connect_signal("unfocus", function(c) 
 					c.border_color = beautiful.border_normal 
 					if opacity_enable then
-   						c.opacity = 0.7
+                                           c.opacity = 0.7
+                                        else
+                                           c.opacity = 1
    					end
 				 end)
 
